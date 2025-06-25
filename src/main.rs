@@ -1,41 +1,16 @@
 use std::{thread, time::Duration};
-#[allow(unused_imports)]
-use std::process::{Command, Stdio};
-use std::fs::{exists, create_dir};
-use arboard::{Clipboard, Error};
 use std::process::exit;
+#[allow(unused_imports)]
+use std::fs::{exists, create_dir};
+use arboard::{Clipboard};
 #[allow(deprecated)]
 use std::env::{home_dir, set_current_dir};
-
-fn on_error(e: Error, func: &str)
-{
-    eprintln!("Source: {}", func);
-    match e {
-    Error::ContentNotAvailable => {
-        eprintln!("ContentNotAvailable");
-    },
-    Error::ClipboardNotSupported => {
-        eprintln!("ClipboardNotSupported");
-        exit(1);
-    },
-    Error::ClipboardOccupied => {
-        eprintln!("ClipboardOccupied");
-    },
-    Error::ConversionFailure => {
-        eprintln!("ConversionFailure");
-    },
-    Error::Unknown { description } => {
-        eprintln!("Unknown: {}", description);
-        exit(1);
-    },
-    _ => {
-        eprintln!("an unexpected error was returned");
-        exit(1);
-    }
-    }
-}
-
-const DOWNLOAD_DIR: &str = "hookclip_deamon";
+use crate::downloader::download_video;
+use crate::error_handlers::on_error;
+use crate::consts::DOWNLOAD_DIR;
+pub mod error_handlers;
+pub mod consts;
+pub mod downloader;
 
 fn main() {
     let mut links: Vec<String> = Vec::new();
@@ -53,7 +28,7 @@ fn main() {
     dpath = home.join(DOWNLOAD_DIR);
     if !exists(&dpath).unwrap()
     {
-        println!("Creating {:#?}", dpath);
+        println!("Creating {:#?} as the folder to use for videos", dpath);
         create_dir(&dpath).unwrap();
     }
     set_current_dir(&dpath).unwrap();
@@ -61,37 +36,12 @@ fn main() {
         match Clipboard::new() {
             Ok(mut clip) => {
                 match clip.get_text() {
-                    Ok(new) => {
-                        if links.contains(&new)
-                        {
-                            continue ;
-                        }
-                        if  new.starts_with("https://www.youtube.com/watch?v")
-                            || new.starts_with("https://youtu.be") || new.starts_with("https://www.youtube.com/live") {
-                            println!("Downloading: [{}]", new);
-                            let current_link = new.clone();
-                            let child = Command::new("yt-dlp")
-                            .arg(&current_link)
-                            .stdout(Stdio::null())
-                            .spawn()
-                            .expect("Failed to execute `yt-dlp` command, make sure u have it installed");
-                            thread::spawn(move || {
-                                let status = child.wait_with_output().expect("Failed to wait on command");
-                                if status.status.success() {
-                                    println!("{} was downloaded successfully.", current_link);
-                                } else {
-                                    println!("Process failed with exit code: {:?}", status.status.code());
-                                }
-                            });
-    
-                            links.push(new.clone());
-                        }
-                    },
+                    Ok(new) => download_video(&new, &mut links),
                     Err(e) => on_error(e, "get_text")
                 }
             },
             Err(e) => on_error(e, "Clipboard::new")
         }
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(1000));
     }
 }
