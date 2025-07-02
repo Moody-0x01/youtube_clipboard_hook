@@ -5,9 +5,7 @@ pub fn on_error(e: Error, func: &str)
 {
     eprintln!("Source: {}", func);
     match e {
-    Error::ContentNotAvailable => {
-        eprintln!("ContentNotAvailable");
-    },
+    Error::ContentNotAvailable => {},
     Error::ClipboardNotSupported => {
         eprintln!("ClipboardNotSupported");
         exit(1);
