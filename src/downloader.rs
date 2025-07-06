@@ -1,7 +1,7 @@
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 use std::{thread};
-
+use crate::options::{Options};
 struct Progress {
     total: usize,
     completed: usize,
@@ -54,7 +54,7 @@ fn download_using_backend(backend: &str, new: &String)
     });
 }
 
-pub fn download_video(new: &String, links: &mut Vec<String>)
+pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
 {
     if links.contains(new)
     {
@@ -62,13 +62,15 @@ pub fn download_video(new: &String, links: &mut Vec<String>)
     }
     if  new.starts_with("https://www.youtube.com/watch?v")
         || new.starts_with("https://youtu.be") || new.starts_with("https://www.youtube.com/live") {
-        download_using_backend("yt-dlp", new);
+        if opts.use_youtube
+        {
+            download_using_backend("yt-dlp", new);
+        }
     }
-    else if new.starts_with("https://") && contains_media_extension(new) {
-        download_using_backend("wget", new);
+    else if new.starts_with("https://") && contains_media_extension(new) && opts.use_youtube {
+            download_using_backend("wget", new);
     } else {
         return ;
     }
     links.push(new.clone());
-    // Add another backend to download torrent files. in the background
 }

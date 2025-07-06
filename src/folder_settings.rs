@@ -5,14 +5,14 @@ use std::fs::{exists, create_dir};
 
 #[allow(deprecated)]
 use std::env::{home_dir, set_current_dir};
-const DOWNLOAD_DIR: &str = "hookclip_deamon";
+const DOWNLOAD_DIR: &str = "videos";
 
 pub fn set_download_folder(folder: &String)
 {
     let default_path;
     let home;
 
-    if folder == "HOME"
+    if folder == "DEFAULT"
     {
         #[allow(deprecated)]
         match home_dir() {
