@@ -1,4 +1,3 @@
-
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Options {
@@ -32,6 +31,20 @@ impl Options
             if arg == "-w" || arg == "--use_wget" {
                 self.use_wget = true;
             }
+            // TODO: Make a filtering system like -fmt for formats, and it would be formatted this
+            // way: -fmt '.mp3 .mp4 .pdf .etcetra' so u can specify which kinds of file this
+            // program can just target.
+            // TODO: Quiet mode. so it can download stuff silently with no logging whatsoever.
+            // TODO: a configuration file so I can know some stuff.
+            // Where to store every format.
+            // Example:
+            //          - Store .mp3 -> SOME_PATH
+            //          - Store .mp4 -> SOME_OTHER_PATH
+            // make a service of some sort to just kick start and stuff...
+            // make a minimal notification system. needs to be very light weight and works as
+            // intended. a very minimal program to call and notify me when everything has been
+            // downloaded with success..
+            // So I dont keep on waiting.
         }
         if !self.use_youtube && !self.use_wget
         {
