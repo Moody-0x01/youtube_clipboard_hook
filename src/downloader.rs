@@ -25,14 +25,13 @@ fn contains_media_extension(link: &str) -> bool {
     media_extensions.iter().any(|&ext| link_lower.ends_with(ext))
 }
 
-fn download_using_backend(backend: &str, new: &String)
+fn download_using_backend(backend: &str, new: &String, opts: &Options)
 {
-    println!("{}: Downloading: {}", backend, new);
+    let quiet = opts.quiet;
     let current_link = new.clone();
     let backend_ = String::from(backend);
     let mut p = get_progress().lock().unwrap();
     p.total += 1;
-
     let child: Child = if backend == "wget" {
         Command::new(backend).arg("-q").arg(&current_link).stdout(Stdio::null())
         .spawn()
@@ -43,10 +42,16 @@ fn download_using_backend(backend: &str, new: &String)
         .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
     };
     thread::spawn(move || {
+        if !quiet {
+            println!("{}: Downloading: {}", backend, new);
+        }
         let status = child.wait_with_output().expect("Failed to wait on command");
         let mut p = get_progress().lock().unwrap();
         p.completed += 1;
-        if status.status.success() {
+        if quiet
+        {
+            return;
+        } else if status.status.success() {
             println!("[{}/{}] {}: {} was downloaded successfully", p.completed, p.total, backend_, current_link);
         } else {
             println!("[{}/{}] {}: Process failed with exit code: {:?}", p.completed, p.total, backend_, status.status.code());
@@ -56,6 +61,7 @@ fn download_using_backend(backend: &str, new: &String)
 
 pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
 {
+    
     if links.contains(new)
     {
         return ;
@@ -64,11 +70,11 @@ pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
         || new.starts_with("https://youtu.be") || new.starts_with("https://www.youtube.com/live") {
         if opts.use_youtube
         {
-            download_using_backend("yt-dlp", new);
+            download_using_backend("yt-dlp", new, opts);
         }
     }
-    else if new.starts_with("https://") && contains_media_extension(new) && opts.use_youtube {
-            download_using_backend("wget", new);
+    else if new.starts_with("https://") && contains_media_extension(new) && opts.use_wget {
+            download_using_backend("wget", new, opts);
     } else {
         return ;
     }

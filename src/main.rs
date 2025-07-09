@@ -5,11 +5,11 @@ use crate::downloader::download_video;
 use crate::error_handlers::on_error;
 use crate::options as opt;
 use std::env::args;
-
 pub mod options;
 pub mod error_handlers;
 pub mod downloader;
 pub mod folder_settings;
+
 
 fn main()
 {
@@ -17,8 +17,10 @@ fn main()
     let opts: Vec<String> = args().collect(); 
     let mut options: opt::Options = opt::Options::new();
 
-    options.parse_options(&opts);
-    // options.log();
+    if options.parse_options(&opts) == 0 {
+        return ;
+    }
+    options.log();
     set_download_folder(&options.download_path);
     loop {
         match Clipboard::new() {
