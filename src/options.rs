@@ -42,41 +42,37 @@ impl Options
     pub fn parse_options(&mut self, opts: &Vec<String>) -> i32
     {
         let mut arg;
-        let mut i = 1;
+        let mut i = 2;
 
         self.download_path = String::from("DEFAULT");
         while i < opts.len() {
             arg = opts[i].clone();
-            // if arg == "-c" || arg == "--confirm" {
-            //     self.confirmation = true;
-            // }
-            if arg == "-y" || arg == "--use_youtube" {
-                self.use_youtube = true;
-            }
-            if arg == "-w" || arg == "--use_wget" {
-                self.use_wget = true;
-            }
-            if arg == "-h" || arg == "--help" {
-                // TODO: print the help and return 0
-                help(&opts[0]);
-                return 0;
-            }
-            if arg == "-fs" || arg == "--fmts" {
-                // TODO: Make a filtering system like -fmt for formats, and it would be formatted this
-                // way: -fmt '.mp3 .mp4 .pdf .etcetra' so u can specify which kinds of file this
-                // program can just target.
-                i = i + 1;
-                if i >= opts.len()
-                {
-                    // TODO: A flag that needs options was not properly inputed.. or whatever.
-                    format_help(&opts[0], format!("-fs: a format list was not provided, please provide the list").clone());
+            match &arg as &str {
+                "-y" | "--use_youtube" => {
+                    self.use_youtube = true;
+                },
+                "-w" | "--use_wget" => {
+                    self.use_wget = true;
+                },
+                "-h" | "--help" => {
+                    help(&opts[0]);
+                    return 0;
+                },
+                "-fs" | "--fmts" => {
+                    i = i + 1;
+                    if i >= opts.len() {
+                        format_help(&opts[0], format!("-fs: a format list was not provided, please provide the list").clone());
+                        return 0;
+                    }
+                    // arg = opts[i].clone();
+                },
+                "-q" | "--quiet" => {
+                    self.quiet = true;
+                },
+                _ => {
+                    println!("Invalid Options: {}", arg);
                     return 0;
                 }
-                arg = opts[i].clone();
-                // TODO: Validate the format list.
-            }
-            if arg == "-q" || arg == "--quiet" {
-                self.quiet = true; // TODO: To be integrated
             }
             // TODO: a configuration file so I can know some stuff. S
             // Where to store every format.

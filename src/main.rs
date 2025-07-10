@@ -5,6 +5,7 @@ use crate::downloader::download_video;
 use crate::error_handlers::on_error;
 use crate::options as opt;
 use std::env::args;
+
 pub mod options;
 pub mod error_handlers;
 pub mod downloader;

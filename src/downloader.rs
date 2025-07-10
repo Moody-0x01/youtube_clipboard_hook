@@ -2,6 +2,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 use std::{thread};
 use crate::options::{Options};
+
 struct Progress {
     total: usize,
     completed: usize,
@@ -41,10 +42,10 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
         .spawn()
         .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
     };
+    if !quiet {
+        println!("{}: Downloading: {}", backend, new);
+    }
     thread::spawn(move || {
-        if !quiet {
-            println!("{}: Downloading: {}", backend, new);
-        }
         let status = child.wait_with_output().expect("Failed to wait on command");
         let mut p = get_progress().lock().unwrap();
         p.completed += 1;
@@ -74,7 +75,7 @@ pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
         }
     }
     else if new.starts_with("https://") && contains_media_extension(new) && opts.use_wget {
-            download_using_backend("wget", new, opts);
+        download_using_backend("wget", new, opts);
     } else {
         return ;
     }
