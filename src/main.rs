@@ -21,7 +21,7 @@ fn main()
     if options.parse_options(&opts) == 0 {
         return ;
     }
-    options.log();
+    // options.log();
     set_download_folder(&options.download_path);
     loop {
         match Clipboard::new() {

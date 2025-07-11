@@ -14,18 +14,6 @@ fn get_progress() -> &'static Mutex<Progress> {
     PROGRESS.get_or_init(|| Mutex::new(Progress { total: 0, completed: 0 }))
 }
 
-fn contains_media_extension(link: &str) -> bool {
-    let media_extensions = [
-        ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma",
-        ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v",
-        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp",
-        ".pdf",
-    ];
-    
-    let link_lower = link.to_lowercase();
-    media_extensions.iter().any(|&ext| link_lower.ends_with(ext))
-}
-
 fn download_using_backend(backend: &str, new: &String, opts: &Options)
 {
     let quiet = opts.quiet;
@@ -74,7 +62,7 @@ pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
             download_using_backend("yt-dlp", new, opts);
         }
     }
-    else if new.starts_with("https://") && contains_media_extension(new) && opts.use_wget {
+    else if new.starts_with("https://") && opts.is_fmt_supported(new) && opts.use_wget {
         download_using_backend("wget", new, opts);
     } else {
         return ;

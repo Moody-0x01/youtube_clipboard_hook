@@ -5,7 +5,7 @@ pub struct Options {
     pub use_wget: bool,
     pub quiet: bool,
     pub download_path: String,
-    // pub confirmation: bool
+    pub formats: Vec<String>
 }
 
 fn help(program_name: &String) {
@@ -35,14 +35,26 @@ impl Options
             use_youtube: false,
             use_wget: false,
             quiet: false,
-            download_path: String::from("")
+            download_path: String::from(""),
+            formats: Vec::<String>::new(),
         }
+    }
+
+    pub fn is_fmt_supported(&self, link: &str) -> bool {
+        let link_lower = link.to_lowercase();
+        self.formats.iter().any(|ext| link_lower.ends_with(&ext as &str))
     }
 
     pub fn parse_options(&mut self, opts: &Vec<String>) -> i32
     {
         let mut arg;
         let mut i = 2;
+        let defualt_fmts = [
+            ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma",
+            ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp",
+            ".pdf",
+        ];
 
         self.download_path = String::from("DEFAULT");
         while i < opts.len() {
@@ -61,10 +73,20 @@ impl Options
                 "-fs" | "--fmts" => {
                     i = i + 1;
                     if i >= opts.len() {
-                        format_help(&opts[0], format!("-fs: a format list was not provided, please provide the list").clone());
+                        format_help(&opts[0], format!("{}: a format list was not provided, please provide the list", arg).clone());
                         return 0;
                     }
-                    // arg = opts[i].clone();
+                    arg = opts[i].clone();
+                    let fmts: Vec<String> = arg.split(' ')
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.to_string())
+                    .collect();
+                    if fmts.len() == 0 {
+                        format_help(&opts[0], format!("{}: a format list was not provided, please provide the list>!<", opts[i - 1]).clone());
+                        return 0;
+                    }
+
+                    fmts.iter().for_each(|s| self.formats.push(s.to_string()));
                 },
                 "-q" | "--quiet" => {
                     self.quiet = true;
@@ -74,17 +96,10 @@ impl Options
                     return 0;
                 }
             }
-            // TODO: a configuration file so I can know some stuff. S
-            // Where to store every format.
-            // Example:
-            //          - Store .mp3 -> SOME_PATH
-            //          - Store .mp4 -> SOME_OTHER_PATH
-            // make a service of some sort to just kick start and stuff...
-            // make a minimal notification system. needs to be very light weight and works as
-            // intended. a very minimal program to call and notify me when everything has been
-            // downloaded with success..
-            // So I dont keep on waiting.
             i += 1;
+        }
+        if self.formats.len() == 0{
+            defualt_fmts.iter().for_each(|s| self.formats.push(s.to_string()));
         }
         if !self.use_youtube && !self.use_wget
         {
@@ -103,5 +118,14 @@ impl Options
         println!("use_youtube: {}", self.use_youtube);
         println!("download_path: {}", self.download_path);
         println!("quiet: {}", self.quiet);
+        println!("formats:");
+        for i in 0..self.formats.len()
+        {
+            print!("{}", self.formats[i]);
+            if i < self.formats.len() - 1 {
+                print!("|");
+            }
+        }
+        print!("\n");
     }
 }
