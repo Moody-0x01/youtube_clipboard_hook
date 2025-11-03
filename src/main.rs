@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 use arboard::{Clipboard};
 use crate::folder_settings::set_download_folder;
-use crate::downloader::download_video;
+use crate::downloader::download;
 use crate::error_handlers::on_error;
 use crate::options as opt;
 use std::env::args;
@@ -27,7 +27,7 @@ fn main()
         match Clipboard::new() {
             Ok(mut clip) => {
                 match clip.get_text() {
-                    Ok(new) => download_video(&new, &mut links, &options),
+                    Ok(new) => download(&new, &mut links, &options),
                     Err(e) => on_error(e, "get_text")
                 }
             },

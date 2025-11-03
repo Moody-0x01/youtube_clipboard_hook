@@ -48,21 +48,28 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
     });
 }
 
-pub fn download_video(new: &String, links: &mut Vec<String>, opts: &Options)
+fn is_link(link: &String) -> bool
 {
-    
+    let flag =  link.starts_with("https://www.youtube.com/watch?v")
+        || link.starts_with("https://youtu.be") 
+        || link.starts_with("https://www.youtube.com/live");
+    return flag || link.starts_with("https://");
+}
+
+pub fn download(new: &String, links: &mut Vec<String>, opts: &Options)
+{
+    // if !opts.download_path_set
+    // {
+    //     // Figure out what folder to use based on the extension
+    //     todo!();
+    // }
     if links.contains(new)
     {
         return ;
     }
-    if  new.starts_with("https://www.youtube.com/watch?v")
-        || new.starts_with("https://youtu.be") || new.starts_with("https://www.youtube.com/live") {
-        if opts.use_youtube
-        {
-            download_using_backend("yt-dlp", new, opts);
-        }
-    }
-    else if new.starts_with("https://") && opts.is_fmt_supported(new) && opts.use_wget {
+    if  opts.use_youtube && is_link(new) {
+        download_using_backend("yt-dlp", new, opts);
+    } else if new.starts_with("https://") && opts.is_fmt_supported(new) && opts.use_wget {
         download_using_backend("wget", new, opts);
     } else {
         return ;

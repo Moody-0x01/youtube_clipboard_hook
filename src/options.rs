@@ -5,6 +5,7 @@ pub struct Options {
     pub use_wget: bool,
     pub quiet: bool,
     pub download_path: String,
+    pub download_path_set: bool,
     pub formats: Vec<String>
 }
 
@@ -37,6 +38,7 @@ impl Options
             quiet: false,
             download_path: String::from(""),
             formats: Vec::<String>::new(),
+            download_path_set: false
         }
     }
 
@@ -48,7 +50,7 @@ impl Options
     pub fn parse_options(&mut self, opts: &Vec<String>) -> i32
     {
         let mut arg;
-        let mut i = 2;
+        let mut i = 1;
         let defualt_fmts = [
             ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma",
             ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v",
@@ -92,8 +94,10 @@ impl Options
                     self.quiet = true;
                 },
                 _ => {
-                    println!("Invalid Options: {}", arg);
-                    return 0;
+                    if i != 1 {
+                        println!("Invalid Options: {}", arg);
+                        return 0;
+                    }
                 }
             }
             i += 1;
@@ -109,6 +113,7 @@ impl Options
         if opts.len() > 1
         {
             self.download_path = opts[1].clone();
+            self.download_path_set = true;
         }
         return 1;
     }
