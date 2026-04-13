@@ -2,7 +2,10 @@
 #[derive(Debug)]
 pub struct Options {
     pub use_youtube: bool,
+    pub use_mpv: bool,
     pub use_wget: bool,
+    pub use_soundcloud: bool,
+    pub use_transmission: bool,
     pub quiet: bool,
     pub download_path: String,
     pub download_path_set: bool,
@@ -18,6 +21,10 @@ fn help(program_name: &String) {
     println!("          Explaination: it will only download the formats given");
     println!("    -y  | --use_youtube: Use `yt-dlp` to download youtube videos");
     println!("    -w  | --use_wget: Use `wget` to download content");
+    println!("    -t  | --use_transmission: Use `transmission` to download torrent");
+    println!("    -m  | --use_mpv: Use `mpv` to play the content"); // depreicated, cuz it is
+                                                                    // useless
+    println!("    -s  | --use_soundcloud: Use `soundcloud` to download the music");
     println!("    -q  | --quiet: be quiet lol");
 }
 
@@ -34,7 +41,10 @@ impl Options
     {
         Self {
             use_youtube: false,
+            use_mpv: false,
             use_wget: false,
+            use_soundcloud: false,
+            use_transmission: false,
             quiet: false,
             download_path: String::from(""),
             formats: Vec::<String>::new(),
@@ -58,7 +68,6 @@ impl Options
             ".pdf",
         ];
 
-        self.download_path = String::from("DEFAULT");
         while i < opts.len() {
             arg = opts[i].clone();
             match &arg as &str {
@@ -68,6 +77,15 @@ impl Options
                 "-w" | "--use_wget" => {
                     self.use_wget = true;
                 },
+                "-m" | "--use_mpv" => {
+                    self.use_mpv = true;
+                },
+                "-s" | "--use_soundcloud" => {
+                    self.use_soundcloud = true;
+                },
+                "-t"  | "--use_transmission" => {
+                    self.use_transmission = true;
+                }
                 "-h" | "--help" => {
                     help(&opts[0]);
                     return 0;
@@ -105,15 +123,21 @@ impl Options
         if self.formats.len() == 0{
             defualt_fmts.iter().for_each(|s| self.formats.push(s.to_string()));
         }
-        if !self.use_youtube && !self.use_wget
+        if !self.use_youtube && !self.use_wget && !self.use_mpv && !self.use_transmission
         {
             self.use_wget = true;
+            self.use_transmission = true;
             self.use_youtube = true;
         }
-        if opts.len() > 1
+        if opts.len() > 1 && !self.use_mpv && !self.use_transmission
         {
             self.download_path = opts[1].clone();
             self.download_path_set = true;
+        } else {
+            self.download_path = String::from("DEFAULT");
+            if self.use_soundcloud {
+                self.download_path = String::from("~/Music");
+            }
         }
         return 1;
     }
@@ -121,6 +145,7 @@ impl Options
     {
         println!("use_wget: {}", self.use_wget);
         println!("use_youtube: {}", self.use_youtube);
+        println!("use_mpv: {}", self.use_mpv);
         println!("download_path: {}", self.download_path);
         println!("quiet: {}", self.quiet);
         println!("formats:");
