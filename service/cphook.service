@@ -1,0 +1,15 @@
+[Unit]
+Description=Clip Board Link hook!
+After=graphical.target
+
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=%h/.Xauthority
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/cphook
+Restart=on-failure
+User=nobody
+
+[Install]
+WantedBy=multi-user.target

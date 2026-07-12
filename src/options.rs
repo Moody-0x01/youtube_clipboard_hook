@@ -129,7 +129,7 @@ impl Options
             self.use_transmission = true;
             self.use_youtube = true;
         }
-        if opts.len() > 1 && !self.use_mpv && !self.use_transmission
+        if opts.len() > 1
         {
             self.download_path = opts[1].clone();
             self.download_path_set = true;

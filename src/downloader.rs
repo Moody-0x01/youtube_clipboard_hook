@@ -47,6 +47,8 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
         }
         else {
             Command::new(backend)
+            // .arg("--cookies-from-browser")
+            // .arg("firefox")
             .arg(&current_link)
             .stdout(Stdio::null())
             .spawn()

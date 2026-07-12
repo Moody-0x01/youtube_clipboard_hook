@@ -21,8 +21,8 @@ fn main()
     if options.parse_options(&opts) == 0 {
         return ;
     }
-    // options.log();
     set_download_folder(&options.download_path);
+    println!("download_path: {}", options.download_path);
     loop {
         match Clipboard::new() {
             Ok(mut clip) => {
