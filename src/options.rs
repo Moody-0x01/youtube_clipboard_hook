@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Options {
     pub use_youtube: bool,
     pub use_mpv: bool,
@@ -121,6 +123,7 @@ impl Options
             i += 1;
         }
         if self.formats.len() == 0{
+            // Sets default formats if it is empty
             defualt_fmts.iter().for_each(|s| self.formats.push(s.to_string()));
         }
         if !self.use_youtube && !self.use_wget && !self.use_mpv && !self.use_transmission

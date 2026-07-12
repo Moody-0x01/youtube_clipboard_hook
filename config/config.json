@@ -1,0 +1,11 @@
+{
+	"use_youtube": true,
+	"use_mpv": true,
+	"use_wget": true,
+	"use_soundcloud": true,
+	"use_transmission": true,
+	"quiet": true,
+	"download_path": "/home/moody/zoud",
+	"formats": [".cpp", ".cp", ".mp3"],
+	"download_path_set": true
+}
