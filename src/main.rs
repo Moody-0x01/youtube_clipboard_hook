@@ -1,8 +1,9 @@
 // use std::fmt::Error::{Err};
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::error::Error;
 // use std::fmt::Error;
-use std::path::Path;
+// use std::path::Path;
 use std::{thread, time::Duration};
 use std::fs::File;
 use std::io::BufReader;
@@ -37,56 +38,59 @@ fn main() -> Result<(), notify::Error>
 {
     let file: &str = "/home/moody/.config/cphook/config.json";
     // 1. Properly unwrap the watcher right here so it stays alive!
-
-    let (tx, rx) = std::sync::mpsc::channel();
-
-    let mut watcher = notify::recommended_watcher(tx)?;
-
-    // 2. Watch the parent directory (to avoid the atomic save issue)
-    let config_dir = std::path::Path::new(file).parent().unwrap();
-    watcher.watch(config_dir, RecursiveMode::NonRecursive)?;
-
     // 1. Load initial options and wrap them in an Arc + RwLock
     let options = load_config(file)
         .expect("[cphook] failed to load the configuration");
-    let shared_options = Arc::new(RwLock::new(options.clone()));
+    // let flag = false;
 
-    // 2. Clone the pointer for the clipboard thread
+    let shared_flag    = Arc::new(AtomicBool::new(true));
+    let shared_options = Arc::new(RwLock::new(options.clone()));
     let clipboard_options = Arc::clone(&shared_options);
+    let clipboard_flag    = Arc::clone(&shared_flag);
     println!("cfg: {:?}", shared_options);
 
     if options.quiet {
         println!("download_path: {}", options.download_path);
     }
 
-    // thread::spawn(move || {
-    //     let mut links: Vec<String> = Vec::new();
-    //     loop {
-    //         {
-    //             let opt = clipboard_options.read().unwrap();
-    //             match Clipboard::new() {
-    //                 Ok(mut clip) => {
-    //                     match clip.get_text() {
-    //                         Ok(new) => download(&new, &mut links, &opt),
-    //                         Err(e) => on_error(e, "get_text")
-    //                     }
-    //                 },
-    //                 Err(e) => {}
-    //             }
-    //         } // The read-lock drops automatically here at the end of this block
-    //
-    //         thread::sleep(Duration::from_millis(1000));
-    //     }
-    // });
+    let handle = thread::spawn(move || {
+        let mut links: Vec<String> = Vec::new();
+        loop {
+            let opt = clipboard_options.read().unwrap();
+            {
+                match Clipboard::new() {
+                    Ok(mut clip) => {
+                        match clip.get_text() {
+                            Ok(new) => download(&new, &mut links, &opt),
+                            Err(e) => on_error(e, "get_text")
+                        }
+                    },
+                    Err(e) => {
+                        clipboard_flag.store(true, Ordering::Relaxed);
+                        println!("[cphook] clipboard daemon failed reason: {}", e);
+                        break ;
+                    }
+                }
+            } // The read-lock drops automatically here at the end of this block
+            thread::sleep(Duration::from_millis(1000));
+        }
+    });
     println!("Watching for file changes...");
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    let mut watcher = notify::recommended_watcher(tx)?;
+    let config_dir = std::path::Path::new(file).parent().unwrap();
+    watcher.watch(config_dir, RecursiveMode::NonRecursive)?;
+
     for res in rx {
+        if !shared_flag.load(Ordering::Relaxed) {
+            break ;
+        }
         match res {
             Ok(event) => {
                 if event.kind.is_modify() {
-                    // println!("Config changed by FastAPI! Reloading...");
                     match load_config(file) {
                     Ok(new_config) => {
-                        // Write-lock the options to safely update the shared data
                         let mut opt = shared_options.write().unwrap();
                         *opt = new_config;
                         println!("Config reloaded successfully!");
@@ -101,5 +105,6 @@ fn main() -> Result<(), notify::Error>
         }
         thread::sleep(Duration::from_millis(1000));
     }
+    handle.join().unwrap();
     Ok(())
 }
