@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::consts::DEFUALT_FMTS;
 
 #[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -58,17 +59,16 @@ impl Options
         let link_lower = link.to_lowercase();
         self.formats.iter().any(|ext| link_lower.ends_with(&ext as &str))
     }
-
+    pub fn setupdefault_formats(&mut self)
+    {
+        if self.formats.len() == 0 {
+            DEFUALT_FMTS.iter().for_each(|s| self.formats.push(s.to_string()));
+        }
+    }
     pub fn parse_options(&mut self, opts: &Vec<String>) -> i32
     {
         let mut arg;
         let mut i = 1;
-        let defualt_fmts = [
-            ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma",
-            ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v",
-            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp",
-            ".pdf",
-        ];
 
         while i < opts.len() {
             arg = opts[i].clone();
@@ -122,10 +122,7 @@ impl Options
             }
             i += 1;
         }
-        if self.formats.len() == 0{
-            // Sets default formats if it is empty
-            defualt_fmts.iter().for_each(|s| self.formats.push(s.to_string()));
-        }
+        self.setupdefault_formats();
         if !self.use_youtube && !self.use_wget && !self.use_mpv && !self.use_transmission
         {
             self.use_wget = true;

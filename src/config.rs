@@ -7,7 +7,7 @@ use std::error::Error;
 pub fn load_config(path: &str) -> Result<opt::Options, Box<dyn Error>> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
-    let config = serde_json::from_reader(reader)?;
-    
+    let mut config: opt::Options = serde_json::from_reader(reader)?;
+    config.setupdefault_formats();
     Ok(config)
 }

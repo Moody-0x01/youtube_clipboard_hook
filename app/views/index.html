@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Manager</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            /* Soft radial glows in the background to enhance the glassmorphism effect */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Entry Animation & Glass Container */
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            
+            /* Entry Animation Details */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: boardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes boardIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 24px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Grid for Toggles */
+        .toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+        }
+
+        .form-group-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group-toggle:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .form-group-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 24px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 28px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Configuration Dashboard</h2>
+    <form id="configForm">
+        
+        <div class="section-title">Enabled Services</div>
+        <div class="toggle-grid">
+            <div class="form-group-toggle">
+                <label for="use_youtube">Use YouTube</label>
+                <label class="switch"><input type="checkbox" id="use_youtube"><span class="slider"></span></label>
+            </div>
+            <div class="form-group-toggle">
+                <label for="use_mpv">Use MPV</label>
+                <label class="switch"><input type="checkbox" id="use_mpv"><span class="slider"></span></label>
+            </div>
+            <div class="form-group-toggle">
+                <label for="use_wget">Use Wget</label>
+                <label class="switch"><input type="checkbox" id="use_wget"><span class="slider"></span></label>
+            </div>
+            <div class="form-group-toggle">
+                <label for="use_soundcloud">Use SoundCloud</label>
+                <label class="switch"><input type="checkbox" id="use_soundcloud"><span class="slider"></span></label>
+            </div>
+            <div class="form-group-toggle">
+                <label for="use_transmission">Use Transmission</label>
+                <label class="switch"><input type="checkbox" id="use_transmission"><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <div class="section-title">Environment Constraints</div>
+        <div class="form-group-column">
+            <label for="download_path">Download Path</label>
+            <input type="text" id="download_path" placeholder="/path/to/downloads">
+        </div>
+        <div class="form-group-column">
+            <label for="formats">Formats (comma-separated)</label>
+            <input type="text" id="formats" placeholder=".mp3, .mp4">
+        </div>
+
+        <button type="submit">Save Configuration</button>
+        <div id="status" class="status"></div>
+    </form>
+</div>
+
+<script>
+    const statusDiv = document.getElementById('status');
+    // Removed 'quiet' and 'download_path_set' from visible interactive array list
+    const visibleToggles = ['use_youtube', 'use_mpv', 'use_wget', 'use_soundcloud', 'use_transmission'];
+
+    // Load initial config from backend
+    async function loadConfig() {
+        try {
+            const res = await fetch('/api/config');
+            const data = await res.json();
+            
+            // Populate visible toggles dynamically
+            visibleToggles.forEach(id => {
+                if(data[id] !== undefined) document.getElementById(id).checked = data[id];
+            });
+            
+            // Populate text metrics
+            document.getElementById('download_path').value = data.download_path || '';
+            document.getElementById('formats').value = data.formats ? data.formats.join(', ') : '';
+        } catch (err) {
+            statusDiv.innerText = 'Failed to load configuration.';
+            statusDiv.style.color = '#f87171';
+        }
+    }
+
+    // Save config back to backend
+    document.getElementById('configForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusDiv.innerText = 'Saving changes...';
+        statusDiv.style.color = '#94a3b8';
+
+        // Base payload structure with fields hardcoded to true as requested
+        const payload = {
+            quiet: true,
+            download_path_set: true,
+            download_path: document.getElementById('download_path').value,
+            formats: document.getElementById('formats').value.split(',').map(s => s.trim()).filter(Boolean)
+        };
+        
+        // Dynamic addition of UI configurable toggle states
+        visibleToggles.forEach(id => {
+            payload[id] = document.getElementById(id).checked;
+        });
+
+        try {
+            const res = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                statusDiv.innerText = 'Configuration saved successfully!';
+                statusDiv.style.color = '#34d399';
+            } else {
+                throw new Error();
+            }
+        } catch (err) {
+            statusDiv.innerText = 'Error saving configuration.';
+            statusDiv.style.color = '#f87171';
+        }
+    });
+
+    loadConfig();
+</script>
+</body>
+</html>

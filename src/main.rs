@@ -17,6 +17,7 @@ pub mod downloader;
 pub mod folder_settings;
 pub mod config;
 pub mod spawner;
+pub mod consts;
 pub mod monitor;
 
 fn main() -> Result<(), notify::Error>
