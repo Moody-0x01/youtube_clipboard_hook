@@ -1,8 +1,9 @@
-SRC=src/consts.rs src/downloader.rs src/error_handlers.rs src/folder_settings.rs src/main.rs src/options.rs
-TARGET=./target/release/cphook
-SERVICE=./service/cphook.service
+SRC=src/consts.rs src/downloader.rs src/error_handlers.rs src/folder_settings.rs src/bin/cli.rs src/bin/daemon.rs src/options.rs 
+TARGET=./target/release/clippy_daemon
+CLI=./target/release/clippy_cli
+SERVICE=./service/clippy_hook.service
 SERVICES_DIR=$(HOME)/.config/systemd/user/
-CONFIG_DIR=$(HOME)/.config/cphook
+CONFIG_DIR=$(HOME)/.config/clippy_hook
 CONFIG=./config/config.json
 INSTALL_DIRECTORY=~/.local/bin/
 
@@ -22,6 +23,7 @@ $(SERVICES_DIR):
 
 install: $(INSTALL_DIRECTORY) $(SERVICES_DIR) $(CONFIG_DIR)
 	cp $(TARGET) $(INSTALL_DIRECTORY)
+	cp $(CLI)    $(INSTALL_DIRECTORY)
 	cp $(SERVICE) $(SERVICES_DIR)
 	cp $(CONFIG) $(CONFIG_DIR)
 

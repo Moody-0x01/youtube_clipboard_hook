@@ -3,8 +3,8 @@ use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use crate::options as opt;
 use crate::downloader::download;
-use arboard::{Clipboard};
 use crate::error_handlers::on_error;
+use arboard::{Clipboard};
 
 pub fn spawn_cphookthread(clipboard_options: Arc<RwLock<opt::Options>>,
     clipboard_flag: Arc<AtomicBool>) -> thread::JoinHandle<()>

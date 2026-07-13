@@ -1,24 +1,9 @@
-// use std::fmt::Error::{Err};
-// use std::fmt::Error;
-// use std::path::Path;
 use std::sync::{Arc, RwLock};
-// use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::atomic::AtomicBool;
-use crate::config::load_config;
-// use std::env::args;
-
-use crate::options as opt;
-use crate::spawner::spawn_cphookthread;
-use crate::monitor::monitor_configuration;
-
-pub mod options;
-pub mod error_handlers;
-pub mod downloader;
-pub mod folder_settings;
-pub mod config;
-pub mod spawner;
-pub mod consts;
-pub mod monitor;
+use clippy_hook::config::load_config;
+use clippy_hook::options as opt;
+use clippy_hook::spawner::spawn_cphookthread;
+use clippy_hook::monitor::monitor_configuration;
 
 fn main() -> Result<(), notify::Error>
 {
