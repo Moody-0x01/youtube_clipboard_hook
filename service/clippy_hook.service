@@ -7,7 +7,7 @@ Environment=XAUTHORITY=%h/.Xauthority
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/cphook
+ExecStart=/usr/bin/clippy_daemon
 Restart=on-failure
 User=nobody
 
