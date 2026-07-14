@@ -5,18 +5,23 @@ use clippy_hook::downloader::download;
 use clippy_hook::error_handlers::on_error;
 use clippy_hook::options as opt;
 use std::env::args;
+use clippy_hook::logger::GlobalLogger;
 
 fn main()
 {
     let mut links: Vec<String> = Vec::new();
     let opts: Vec<String> = args().collect(); 
+    GlobalLogger::init_cli();
+    GlobalLogger::log("Running in CLI mode. Logs routing to Stdout.");
     let mut options: opt::Options = opt::Options::new();
 
     if options.parse_options(&opts) == 0 {
         return ;
     }
-    set_download_folder(&options.download_path);
-    println!("download_path: {}", options.download_path);
+    set_download_folder(&mut options.download_path);
+    if !options.quiet {
+        GlobalLogger::log(&format!("download_path: {}", options.download_path));
+    }
     loop {
         match Clipboard::new() {
             Ok(mut clip) => {

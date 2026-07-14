@@ -1,0 +1,5 @@
+#!/bin/bash
+APP=$HOME/.local/share/clippy/
+cd $APP
+source ./venv/bin/activate
+fastapi dev main.py

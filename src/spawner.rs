@@ -23,7 +23,7 @@ pub fn spawn_cphookthread(clipboard_options: Arc<RwLock<opt::Options>>,
                     },
                     Err(e) => {
                         clipboard_flag.store(true, Ordering::Relaxed);
-                        println!("[cphook] clipboard daemon failed reason: {}", e);
+                        println!("[clippy_hook] clipboard daemon failed reason: {}", e);
                         break ;
                     }
                 }

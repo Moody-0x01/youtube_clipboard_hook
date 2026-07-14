@@ -4,7 +4,7 @@
 	"use_wget": true,
 	"use_soundcloud": true,
 	"use_transmission": true,
-	"quiet": true,
+	"quiet": false,
 	"download_path": "/home/moody/zoud",
 	"formats": [".cpp", ".cp", ".mp3"],
 	"download_path_set": true

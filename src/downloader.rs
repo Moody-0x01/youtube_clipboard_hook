@@ -2,13 +2,13 @@ use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 use std::{thread};
 use crate::options::{Options};
+use crate::logger::GlobalLogger;
 
 struct Progress {
     total: usize,
     completed: usize,
 }
 
-// transmission-remote  Host:Port -r $LINK
 static TRANSMISSIONHOST: &str = "localhost:6969";
 static PROGRESS: OnceLock<Mutex<Progress>> = OnceLock::new();
 
@@ -56,7 +56,7 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
         }
     };
     if !quiet {
-        println!("{}: Downloading: {}", backend, new);
+        GlobalLogger::log(&format!("{}: Downloading: {}", backend, new));
     }
     thread::spawn(move || {
         let status = child.wait_with_output().expect("Failed to wait on command");
@@ -67,12 +67,12 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
         } else if status.status.success() {
             p.completed += 1;
             if backend_ == "transmission-remote" {
-                println!("[{}/{}] {}: {} was added successfully", p.completed, p.total, backend_, current_link);
+                GlobalLogger::log(&format!("[{}/{}] {}: {} was added successfully", p.completed, p.total, backend_, current_link));
             } else {
-                println!("[{}/{}] {}: {} was downloaded successfully", p.completed, p.total, backend_, current_link);
+                GlobalLogger::log(&format!("[{}/{}] {}: {} was downloaded successfully", p.completed, p.total, backend_, current_link));
             }
         } else {
-            println!("[{}/{}] {}: Process failed with exit code: {:?}", p.completed, p.total, backend_, status.status.code());
+            GlobalLogger::log(&format!("[{}/{}] {}: Process failed with exit code: {:?}", p.completed, p.total, backend_, status.status.code()));
         }
     });
 }

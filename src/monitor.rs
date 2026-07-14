@@ -8,7 +8,7 @@ use crate::config::load_config;
 pub fn monitor_configuration(file: &str, shared_options: Arc<RwLock<opt::Options>>,
     shared_flag: Arc<AtomicBool>) -> Result<(), Box<dyn std::error::Error>>
 {
-    println!("Watching for file changes...");
+    println!("[clippy_hook] config Monitor started for {}", file);
     let (tx, rx) = std::sync::mpsc::channel();
     let mut watcher = notify::recommended_watcher(tx)?;
     let config_dir = std::path::Path::new(file).parent().unwrap();
@@ -25,16 +25,16 @@ pub fn monitor_configuration(file: &str, shared_options: Arc<RwLock<opt::Options
                     Ok(new_config) => {
                         let mut opt = shared_options.write().unwrap();
                         *opt = new_config;
-                        println!("Config reloaded successfully!");
+                        println!("[clippy_hook] Config reloaded successfully!");
                     },
                     Err(e) => {
-                        eprintln!("[cphook] failed to parse reloaded config reason: {} {}", e, file);
+                        eprintln!("[clippy_hook] failed to parse reloaded config reason: {} {}", e, file);
                     }
                     }
                 }
             }
             Err(e) => {
-                println!("watch error: {:?}", e);
+                println!("[clippy_hook] watch error: {:?}", e);
                 return Ok(());
             }
         }

@@ -5,9 +5,9 @@ use std::fs::{create_dir, exists};
 
 #[allow(deprecated)]
 use std::env::{home_dir, set_current_dir};
-const DOWNLOAD_DIR: &str = "videos";
+const DOWNLOAD_DIR: &str = "Downloads";
 
-pub fn set_download_folder(folder: &String) {
+pub fn set_download_folder(folder: &mut String) {
     let default_path;
     let home;
 
@@ -21,13 +21,15 @@ pub fn set_download_folder(folder: &String) {
             }
         }
         default_path = home.join(DOWNLOAD_DIR);
-        let fldr = default_path.to_str().unwrap().to_string();
-        set_download_folder(&fldr);
+        let mut fldr = default_path.to_str().unwrap().to_string();
+        set_download_folder(&mut fldr);
+        *folder = fldr.clone();
     } else {
-        if !exists(folder).unwrap() {
+        if !exists(folder.clone()).unwrap() {
             println!("Creating {:#?} as the folder to use for videos", folder);
-            create_dir(folder).unwrap();
+            create_dir(folder.clone()).unwrap();
         }
+        
         set_current_dir(folder).unwrap();
     }
 }

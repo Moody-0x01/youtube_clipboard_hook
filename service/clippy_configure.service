@@ -1,0 +1,14 @@
+[Unit]
+Description=Web Ui to manage clippy_hook
+Requires=clippy_hook.service
+After=clippy_hook.service
+
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/clippy_app
+Restart=on-failure
+User=nobody
+
+[Install]
+WantedBy=multi-user.target

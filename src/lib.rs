@@ -6,3 +6,4 @@ pub mod config;
 pub mod spawner;
 pub mod consts;
 pub mod monitor;
+pub mod logger;
