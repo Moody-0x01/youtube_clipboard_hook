@@ -1,4 +1,3 @@
-
 SRC=src/consts.rs src/downloader.rs src/error_handlers.rs src/folder_settings.rs src/bin/cli.rs src/bin/daemon.rs src/options.rs 
 TARGET=./target/release/clippy_daemon
 CLI=./target/release/clippy_cli
@@ -9,23 +8,29 @@ CONFIG=./config/config.json
 APP_DIR=$(HOME)/.local/share/clippy/
 SYS_CTL=systemctl --user 
 INSTALL_DIRECTORY=$(HOME)/.local/bin
+APP_FILES=app/requirements.txt $(wildcard app/*.py)
 
 all: $(TARGET) app
 
-app: $(APP_DIR)
-	python3 -m venv app/venv	
+app: .app_built
+
+.app_built: $(APP_FILES) | $(APP_DIR)
+	python3 -m venv app/venv    
 	app/venv/bin/pip install -r ./app/requirements.txt
-	cp -p scripts/clippy_app $(INSTALL_DIRECTORY)
+	cp -p scripts/* $(INSTALL_DIRECTORY)
 	cp -r app/* "$(APP_DIR)"
-	
+	touch .app_built  # Marks the timestamp of the last successful build
+
 $(APP_DIR):
 	mkdir -p $(APP_DIR)
 
 $(CONFIG_DIR):
 	mkdir -p $(CONFIG_DIR)
 
-$(TARGET): $(SRC) $(CONFIG_DIR)
+$(TARGET): $(SRC) | $(CONFIG_DIR)
 	cargo build --release
+
+build: $(TARGET) app
 
 $(INSTALL_DIRECTORY):
 	mkdir -p $(INSTALL_DIRECTORY)
@@ -33,20 +38,28 @@ $(INSTALL_DIRECTORY):
 $(SERVICES_DIR):
 	mkdir -p $(SERVICES_DIR)
 
-install: $(INSTALL_DIRECTORY) $(SERVICES_DIR) $(CONFIG_DIR) $(TARGET) app
+install: build $(INSTALL_DIRECTORY) $(SERVICES_DIR) $(CONFIG_DIR)
 	cp $(TARGET) $(INSTALL_DIRECTORY)
 	cp $(CLI)    $(INSTALL_DIRECTORY)
 	cp $(SERVICES) $(SERVICES_DIR)
 	cp $(CONFIG) $(CONFIG_DIR)
 
-run: install
-	$(SYS_CTL) daemon-reload
-	$(SYS_CTL) start clippy_hook.service
+start:
+	systemctl --user daemon-reload
 	$(SYS_CTL) start clippy_configure.service
+	$(SYS_CTL) start clippy_hook.service
 
-clean:
+stop:
+	$(SYS_CTL) daemon-reload
+	$(SYS_CTL) stop clippy_hook.service || true
+	$(SYS_CTL) stop clippy_configure.service || true
+
+run: stop install start
+
+clean: stop
 	cargo clean
+	rm -f .app_built
 
 re: clean all
 
-.PHONY: re clean $(TARGET) run install $(SERVICES_DIR) $(INSTALL_DIRECTORY)
+.PHONY: all app re clean run install start stop

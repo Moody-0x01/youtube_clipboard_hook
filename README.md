@@ -1,38 +1,41 @@
-# Desc
-- An open source command line tool to download data from the net.
-- examples:
-```
-[*] - Youtube links
-[*] - Media links (Any link that has a valid media format at the end like exm: .mp3, .pdf, .m4a, .wav...)
-```
+# youtube_clipboard_hook
 
-# Deps
-- Cargo (To build the project lol)
-- ffmpeg (For better quality generally)
-- libx11 (to be able to link with so u can monitor ur clipboard)
-- yt-dlp (for downloading youtube link)
-- wget (for media links)
+A small open-source tool (Rust + helpers) that watches the system clipboard for links and automatically downloads recognized media links (YouTube, direct media files, torrents, etc.).
 
-# Setup
-1) Build
+See the full documentation in the `docs/` folder.
+
+Key components
+- `src/` - Rust daemon, CLI and library code
+- `service/` - example systemd unit files
+- `app/` - small Python web UI and static views
+
+Prerequisites
+- `cargo` (Rust toolchain) for building the project
+- `ffmpeg` (recommended for processing media)
+- `libx11` (clipboard monitoring on X11)
+- `yt-dlp` (YouTube downloads)
+- `wget` (direct media downloads)
+- `transmission-cli` (optional, for torrents)
+
+Quickstart
+1. Build the Rust project:
+
 ```sh
-$> cargo build
+cargo build --release
 ```
 
-2) Run
+2. Run the CLI (development):
+
 ```sh
-$> cargo run
+cargo run --release -- [DOWNLOAD_PATH]
 ```
-- When u do a run, the command will start listening for links that u copy in ur clipboard, if it catches a link that can be downloaded as media it just downloads it and logs that it is doing so in ur terminal...
-# Usage
-```
-Usage: {} [DOWNLOAD_PATH] [...Options], program_name
-Options:
-   -h  | --help: Displays this menu
-   -fs | --fmts: specifies which format to care about when getting links to download
-      Example: {} . -fs \'.mp3 .mp4 .wav\', program_name
-      Explaination: it will only download the formats given
--y  | --use_youtube: Use `yt-dlp` to download youtube videos
--w  | --use_wget: Use `wget` to download content
--q  | --quiet: be quiet lol
-```
+
+3. To run the daemon, install the appropriate unit from the `service/` directory and enable it with systemd.
+
+Documentation
+- Architecture: docs/architecture.md
+- Setup & install: docs/setup.md
+- Usage & examples: docs/usage.md
+- Contributing: docs/contributing.md
+
+For development notes and code layout, see the `src/` and `app/` folders.

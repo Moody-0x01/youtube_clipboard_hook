@@ -1,4 +1,5 @@
 use std::process::{Child, Command, Stdio};
+use url::Url;
 use std::sync::{Mutex, OnceLock};
 use std::{thread};
 use crate::options::{Options};
@@ -37,23 +38,13 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
             .spawn()
             .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
     } else {
-        if opts.use_soundcloud
-        {
-            Command::new("daudio.sh")
-            .arg(&current_link)
-            .stdout(Stdio::null())
-            .spawn()
-            .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
-        }
-        else {
-            Command::new(backend)
-            // .arg("--cookies-from-browser")
-            // .arg("firefox")
-            .arg(&current_link)
-            .stdout(Stdio::null())
-            .spawn()
-            .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
-        }
+        Command::new(backend)
+        // .arg("--cookies-from-browser")
+        // .arg("firefox")
+        .arg(&current_link)
+        .stdout(Stdio::null())
+        .spawn()
+        .expect(format!("Failed to execute `{}` command, make sure u have it installed", backend).as_str())
     };
     if !quiet {
         GlobalLogger::log(&format!("{}: Downloading: {}", backend, new));
@@ -79,10 +70,33 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
 
 fn is_link(link: &String) -> bool
 {
-    let flag =  link.starts_with("https://www.youtube.com/watch?v")
+    return link.starts_with("https://");
+}
+
+fn is_youtube(link: &String) -> bool {
+    let flag =  
+        link.starts_with("https://www.youtube.com/watch?v")
         || link.starts_with("https://youtu.be") 
         || link.starts_with("https://www.youtube.com/live");
-    return flag || link.starts_with("https://");
+    return flag;
+}
+
+
+pub fn is_soundcloud(link: &str) -> bool {
+    let parsed = match Url::parse(link) {
+        Ok(url) => url,
+        Err(_) => return false, // Not a valid URL format
+    };
+    if let Some(host) = parsed.host_str() {
+        let host_lower = host.to_lowercase();
+        
+        host_lower == "soundcloud.com" 
+            || host_lower == "www.soundcloud.com" 
+            || host_lower == "m.soundcloud.com"
+            || host_lower.ends_with(".soundcloud.com") // Catches regional/other subdomains safely
+    } else {
+        false
+    }
 }
 
 pub fn is_magnet_or_torrent(s: &String) -> bool {
@@ -92,7 +106,6 @@ pub fn is_magnet_or_torrent(s: &String) -> bool {
     if s.ends_with(".torrent") {
         return true;
     }
-
     false
 }
 
@@ -102,20 +115,25 @@ pub fn download(new: &String, links: &mut Vec<String>, opts: &Options)
     //     // Figure out what folder to use based on the extension
     //     todo!();
     // }
-    if links.contains(new)
+    if links.contains(new) || !is_link(new)
     {
         return ;
     }
-    if opts.use_transmission && is_magnet_or_torrent(new) {
-        download_using_backend("transmission-remote", new, opts);
-    } else if opts.use_mpv && is_link(new) {
-        download_using_backend("mpv", new, opts);
-    } else if  opts.use_youtube && is_link(new) {
-        download_using_backend("yt-dlp", new, opts);
-    } else if new.starts_with("https://") && opts.is_fmt_supported(new) && opts.use_wget {
+    if new.starts_with("https://") && opts.is_fmt_supported(new) && opts.use_wget {
         download_using_backend("wget", new, opts);
+    } else if opts.use_transmission && is_magnet_or_torrent(new) {
+        download_using_backend("transmission-remote", new, opts);
+    // } 
+    // else if opts.use_mpv && is_link(new) {
+        // TODO: deprecate :)
+        // download_using_backend("mpv", new, opts);
+    } else if  opts.use_youtube && is_youtube(new) {
+        download_using_backend("yt-dlp", new, opts);
+    } else if opts.use_soundcloud && is_soundcloud(new)
+    {
+        download_using_backend("daudio.sh", new, opts);
     } else {
-        return ;
+        return;
     }
     links.push(new.clone());
 }

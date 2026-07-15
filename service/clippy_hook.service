@@ -1,15 +1,17 @@
 [Unit]
 Description=Clip Board Link hook!
-After=graphical.target
-
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=%h/.Xauthority
+Requires=clippy_configure.service
+After=clippy_configure.service
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/clippy_hook/clippy_daemon
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=%h/.Xauthority
+Environment="PATH=/home/moody/.config/herd-lite/bin:/home/moody/.local/bin:/home/moody/.venv/bin:/home/moody/.bin:/home/moody/.local/share/nvim/mason/bin:/home/moody/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/moody/xinit.d/"
+ExecStart=%h/.local/bin/clippy_daemon
 Restart=on-failure
-User=nobody
+RestartSec=5s
 
 [Install]
-WantedBy=multi-user.target
+# Changed to default.target assuming this is a user service (~/.config/systemd/user/)
+WantedBy=default.target

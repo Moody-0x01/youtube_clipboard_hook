@@ -7,20 +7,19 @@ use clippy_hook::spawner::spawn_cphookthread;
 use clippy_hook::monitor::monitor_configuration;
 use clippy_hook::logger::GlobalLogger;
 // use std::os::unix::net::UnixStream;
-fn main() -> Result<(), notify::Error>
+fn main() -> Result<(), Box<dyn std::error::Error>>
 {
     // TODO: connect to the stream.
     // TODO: write to it whatever log u might need to write then the server will just write it
     // elseweher.
-    // let mut stream = UnixStream::connect("/tmp//clippy_hook.sock")?;
     match GlobalLogger::init_daemon("/tmp/clippy_hook.sock") {
         Ok(_) => GlobalLogger::log("Running in Daemon mode. Connected to FastAPI socket."),
         Err(e) => {
             eprintln!("Failed to connect to socket server: {}. Falling back to CLI mode.", e);
-            GlobalLogger::init_cli();
+            return Err(e.into());
         }
     }
-    let file: &str = "/home/moody/.config/cphook/config.json";
+    let file: &str = "/home/moody/.config/clippy_hook/config.json";
     let mut options = load_config(file)
         .expect("[clippy_hook] failed to load the configuration");
     let shared_flag:       Arc<AtomicBool>   = Arc::new(AtomicBool::new(true));
@@ -30,6 +29,7 @@ fn main() -> Result<(), notify::Error>
 
     set_download_folder(&mut options.download_path);
     if !options.quiet {
+        println!("[clippy_hook] download_path: {}", options.download_path);
         GlobalLogger::log(&format!("download_path: {}", options.download_path));
     }
     let handle = spawn_cphookthread(clipboard_options, clipboard_flag);

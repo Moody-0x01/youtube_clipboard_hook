@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Manager</title>
+    <title>Config Manager & Logs</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -13,18 +13,18 @@
             --accent-hover: #4f46e5;
             --border-color: rgba(255, 255, 255, 0.08);
             --input-bg: rgba(15, 23, 42, 0.6);
+            --terminal-bg: rgba(5, 5, 12, 0.85);
         }
 
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
-            /* Soft radial glows in the background to enhance the glassmorphism effect */
             background-image: 
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
             color: var(--text-color);
             margin: 0;
-            padding: 40px 20px;
+            padding: 40px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,21 +33,13 @@
             overflow-x: hidden;
         }
 
-        /* Entry Animation & Glass Container */
-        .container {
+        /* Master Wrapper for Side-by-Side Layout */
+        .dashboard-wrapper {
+            display: flex;
             width: 100%;
-            max-width: 650px;
-            background: rgba(30, 41, 59, 0.45);
-            backdrop-filter: blur(16px) saturate(120%);
-            -webkit-backdrop-filter: blur(16px) saturate(120%);
-            padding: 32px;
-            border-radius: 24px;
-            box-shadow: 
-                0 4px 30px rgba(0, 0, 0, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            
-            /* Entry Animation Details */
+            max-width: 1300px;
+            gap: 30px;
+            align-items: stretch;
             opacity: 0;
             transform: translateY(30px);
             animation: boardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -60,6 +52,87 @@
             }
         }
 
+        /* Glass Container (Left Column) */
+        .container {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Terminal Panel (Right Column) */
+        .terminal-panel {
+            flex: 1;
+            min-width: 320px;
+            background: var(--terminal-bg);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Terminal Header Bar */
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .terminal-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot.red { background: #ef4444; }
+        .dot.amber { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+
+        /* Terminal Content Terminal Text Stream */
+        .terminal-body {
+            flex: 1;
+            padding: 20px;
+            margin: 0;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #34d399; /* Classic Linux terminal green */
+            background: transparent;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 550px;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+        }
+
+        /* Original Styles preserved below */
         h2 {
             margin-top: 0;
             margin-bottom: 24px;
@@ -91,10 +164,9 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* Grid for Toggles */
         .toggle-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 14px;
         }
 
@@ -145,11 +217,6 @@
             background: rgba(15, 23, 42, 0.8);
         }
 
-        input[type="text"]::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* Toggle Switch Styling */
         .switch {
             position: relative;
             display: inline-block;
@@ -157,11 +224,7 @@
             height: 24px;
         }
 
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
 
         .slider {
             position: absolute;
@@ -184,13 +247,8 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
-            background-color: var(--accent-color);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(18px);
-        }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(18px); }
 
         button {
             width: 100%;
@@ -213,10 +271,6 @@
             box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
         .status {
             text-align: center;
             margin-top: 16px;
@@ -224,56 +278,78 @@
             font-weight: 500;
             min-height: 20px;
         }
+
+        /* Responsive stack if screen is too narrow */
+        @media (max-width: 850px) {
+            .dashboard-wrapper {
+                flex-direction: column;
+            }
+            body { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Configuration Dashboard</h2>
-    <form id="configForm">
-        
-        <div class="section-title">Enabled Services</div>
-        <div class="toggle-grid">
-            <div class="form-group-toggle">
-                <label for="use_youtube">Use YouTube</label>
-                <label class="switch"><input type="checkbox" id="use_youtube"><span class="slider"></span></label>
+<div class="dashboard-wrapper">
+    <div class="container">
+        <h2>Configuration Dashboard</h2>
+        <form id="configForm">
+            <div class="section-title">Enabled Services</div>
+            <div class="toggle-grid">
+                <div class="form-group-toggle">
+                    <label for="use_youtube">Use YouTube</label>
+                    <label class="switch"><input type="checkbox" id="use_youtube"><span class="slider"></span></label>
+                </div>
+                <div class="form-group-toggle">
+                    <label for="use_mpv">Use MPV</label>
+                    <label class="switch"><input type="checkbox" id="use_mpv"><span class="slider"></span></label>
+                </div>
+                <div class="form-group-toggle">
+                    <label for="use_wget">Use Wget</label>
+                    <label class="switch"><input type="checkbox" id="use_wget"><span class="slider"></span></label>
+                </div>
+                <div class="form-group-toggle">
+                    <label for="use_soundcloud">Use SoundCloud</label>
+                    <label class="switch"><input type="checkbox" id="use_soundcloud"><span class="slider"></span></label>
+                </div>
+                <div class="form-group-toggle">
+                    <label for="use_transmission">Use Transmission</label>
+                    <label class="switch"><input type="checkbox" id="use_transmission"><span class="slider"></span></label>
+                </div>
             </div>
-            <div class="form-group-toggle">
-                <label for="use_mpv">Use MPV</label>
-                <label class="switch"><input type="checkbox" id="use_mpv"><span class="slider"></span></label>
-            </div>
-            <div class="form-group-toggle">
-                <label for="use_wget">Use Wget</label>
-                <label class="switch"><input type="checkbox" id="use_wget"><span class="slider"></span></label>
-            </div>
-            <div class="form-group-toggle">
-                <label for="use_soundcloud">Use SoundCloud</label>
-                <label class="switch"><input type="checkbox" id="use_soundcloud"><span class="slider"></span></label>
-            </div>
-            <div class="form-group-toggle">
-                <label for="use_transmission">Use Transmission</label>
-                <label class="switch"><input type="checkbox" id="use_transmission"><span class="slider"></span></label>
-            </div>
-        </div>
 
-        <div class="section-title">Environment Constraints</div>
-        <div class="form-group-column">
-            <label for="download_path">Download Path</label>
-            <input type="text" id="download_path" placeholder="/path/to/downloads">
-        </div>
-        <div class="form-group-column">
-            <label for="formats">Formats (comma-separated)</label>
-            <input type="text" id="formats" placeholder=".mp3, .mp4">
-        </div>
+            <div class="section-title">Environment Constraints</div>
+            <div class="form-group-column">
+                <label for="download_path">Download Path</label>
+                <input type="text" id="download_path" placeholder="/path/to/downloads">
+            </div>
+            <div class="form-group-column">
+                <label for="formats">Formats (comma-separated)</label>
+                <input type="text" id="formats" placeholder=".mp3, .mp4">
+            </div>
 
-        <button type="submit">Save Configuration</button>
-        <div id="status" class="status"></div>
-    </form>
+            <button type="submit">Save Configuration</button>
+            <div id="status" class="status"></div>
+        </form>
+    </div>
+
+    <div class="terminal-panel">
+        <div class="terminal-header">
+            <span class="terminal-title">Daemon Logs (clippy_hook)</span>
+            <div class="window-dots">
+                <div class="dot red"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+            </div>
+        </div>
+        <div class="terminal-body" id="terminalLog">Welcome to clippy_hook panel. Connecting to stream...
+</div>
+    </div>
 </div>
 
 <script>
     const statusDiv = document.getElementById('status');
-    // Removed 'quiet' and 'download_path_set' from visible interactive array list
+    const terminalLog = document.getElementById('terminalLog');
     const visibleToggles = ['use_youtube', 'use_mpv', 'use_wget', 'use_soundcloud', 'use_transmission'];
 
     // Load initial config from backend
@@ -282,12 +358,10 @@
             const res = await fetch('/api/config');
             const data = await res.json();
             
-            // Populate visible toggles dynamically
             visibleToggles.forEach(id => {
                 if(data[id] !== undefined) document.getElementById(id).checked = data[id];
             });
             
-            // Populate text metrics
             document.getElementById('download_path').value = data.download_path || '';
             document.getElementById('formats').value = data.formats ? data.formats.join(', ') : '';
         } catch (err) {
@@ -296,21 +370,49 @@
         }
     }
 
+    // Connect to the Server-Sent Events /stream endpoint
+    function connectToLogStream() {
+        // SSE connection
+        const eventSource = new EventSource('/stream');
+
+        eventSource.onopen = () => {
+            terminalLog.innerHTML += `<div class="log-entry" style="color: #60a5fa;">[UI] Connected to daemon log stream! Waiting for events...</div>`;
+        };
+
+        eventSource.onmessage = (event) => {
+            // Append incoming stream line
+            const newLog = document.createElement('div');
+            newLog.className = 'log-entry';
+            newLog.textContent = event.data.trim();
+            terminalLog.appendChild(newLog);
+
+            // Auto-scroll to the bottom of the terminal window
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        };
+
+        eventSource.onerror = (err) => {
+            console.error("EventSource failed:", err);
+            const errorLog = document.createElement('div');
+            errorLog.className = 'log-entry';
+            errorLog.style.color = '#f87171';
+            errorLog.textContent = '[UI] Stream disconnected. Reconnecting...';
+            terminalLog.appendChild(errorLog);
+        };
+    }
+
     // Save config back to backend
     document.getElementById('configForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         statusDiv.innerText = 'Saving changes...';
         statusDiv.style.color = '#94a3b8';
 
-        // Base payload structure with fields hardcoded to true as requested
         const payload = {
-            quiet: true,
+            quiet: false,
             download_path_set: true,
             download_path: document.getElementById('download_path').value,
             formats: document.getElementById('formats').value.split(',').map(s => s.trim()).filter(Boolean)
         };
         
-        // Dynamic addition of UI configurable toggle states
         visibleToggles.forEach(id => {
             payload[id] = document.getElementById(id).checked;
         });
@@ -334,7 +436,9 @@
         }
     });
 
+    // Run setup on load
     loadConfig();
+    connectToLogStream();
 </script>
 </body>
 </html>

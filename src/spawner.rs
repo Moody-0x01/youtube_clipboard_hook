@@ -12,8 +12,11 @@ pub fn spawn_cphookthread(clipboard_options: Arc<RwLock<opt::Options>>,
     return thread::spawn(move || {
         let mut links: Vec<String> = Vec::new();
         loop {
-            let opt = clipboard_options.read().unwrap();
+            if !clipboard_flag.load(Ordering::Relaxed) {
+                break;
+            }
             {
+                let opt = clipboard_options.read().unwrap();
                 match Clipboard::new() {
                     Ok(mut clip) => {
                         match clip.get_text() {
@@ -22,7 +25,7 @@ pub fn spawn_cphookthread(clipboard_options: Arc<RwLock<opt::Options>>,
                         }
                     },
                     Err(e) => {
-                        clipboard_flag.store(true, Ordering::Relaxed);
+                        clipboard_flag.store(false, Ordering::Relaxed);
                         println!("[clippy_hook] clipboard daemon failed reason: {}", e);
                         break ;
                     }

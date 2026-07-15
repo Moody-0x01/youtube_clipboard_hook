@@ -6,8 +6,8 @@ from pydantic import BaseModel
 from os import environ, makedirs, path, remove
 
 app = FastAPI()
-CONFIG_FILE = "/home/moody/.config/cphook/config.json"
-DEFAULT_PATH = environ["HOME"] + "/" + "cphook"
+CONFIG_FILE="/home/moody/.config/clippy_hook/config.json"
+DEFAULT_PATH = environ["HOME"] + "/" + "clippy_hook"
 SOCKET_PATH = "/tmp/clippy_hook.sock"
 daemon_queue = asyncio.Queue()
 
@@ -38,11 +38,10 @@ def get_config():
 def update_config(updated_data: ConfigSchema):
     with open(CONFIG_FILE, "w") as f:
         new_config = updated_data.model_dump()
-        # print(type (updated_data.model_dump()))
         if new_config["download_path"] == "":
             new_config["download_path"] = DEFAULT_PATH;
-
         json.dump(new_config, f, indent=4)
+        print("Config was dumped to: ", CONFIG_FILE)
     return {"status": "success"}
 
 
@@ -54,7 +53,6 @@ async def handle_daemon_client(reader, writer):
             if not data:
                 break
             message = data.decode()
-            # Push the message into the queue for FastAPI to consume
             await daemon_queue.put(message)
     except Exception as e:
         print(f"Socket error: {e}")
@@ -80,4 +78,3 @@ async def event_generator():
 @app.get("/stream")
 async def stream_daemon_data():
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-

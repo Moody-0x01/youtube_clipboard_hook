@@ -1,6 +1,8 @@
 use std::os::unix::net::UnixStream;
+use std::time::Duration;
 use std::io::{self, Write};
 use std::sync::{Mutex, OnceLock};
+use std::thread;
 
 enum LogTarget {
     Terminal(io::Stdout),
@@ -12,7 +14,6 @@ pub struct GlobalLogger {
 }
 
 static LOGGER: OnceLock<GlobalLogger> = OnceLock::new();
-
 impl GlobalLogger {
     pub fn init_cli() {
         let logger = GlobalLogger {
@@ -21,8 +22,22 @@ impl GlobalLogger {
         let _ = LOGGER.set(logger);
     }
 
+    fn connect_to_backend(socket_path: &str) -> UnixStream {
+        loop {
+            match UnixStream::connect(socket_path) {
+                Ok(stream) => {
+                    println!("[clippy_hook] Connected to FastAPI socket successfully!");
+                    return stream;
+                }
+                Err(e) => {
+                    eprintln!("[clippy_hook] Socket server not ready ({:?}). Retrying in 1s...", e.kind());
+                    thread::sleep(Duration::from_secs(1));
+                }
+            }
+        }
+    }
     pub fn init_daemon(socket_path: &str) -> io::Result<()> {
-        let stream = UnixStream::connect(socket_path)?;
+        let stream = GlobalLogger::connect_to_backend(socket_path);
         let logger = GlobalLogger {
             target: Mutex::new(LogTarget::Socket(stream)),
         };
@@ -45,6 +60,7 @@ impl GlobalLogger {
                     }
                     LogTarget::Socket(stream) => {
                         let _ = stream.write_all(formatted.as_bytes());
+                        println!("[GlobalLogger::log] Sent log to socket: {}", message);
                         let _ = stream.flush();
                     }
                 }

@@ -1,14 +1,12 @@
 [Unit]
 Description=Web Ui to manage clippy_hook
-Requires=clippy_hook.service
-After=clippy_hook.service
-
+After=graphical.target
 
 [Service]
 Type=simple
 ExecStart=%h/.local/bin/clippy_app
+Environment="PATH=/home/moody/.config/herd-lite/bin /home/moody/.local/bin /home/moody/.venv/bin /home/moody/.bin /home/moody/.local/share/nvim/mason/bin /home/moody/.cargo/bin /usr/local/sbin /usr/local/bin /usr/bin /usr/bin/site_perl /usr/bin/vendor_perl /usr/bin/core_perl /home/moody/xinit.d/"
 Restart=on-failure
-User=nobody
 
 [Install]
 WantedBy=multi-user.target
