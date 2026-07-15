@@ -35,9 +35,19 @@ pub fn monitor_configuration(file: &str, shared_options: Arc<RwLock<opt::Options
                         match shared_options.try_write() {
                             Ok(mut opt) => {
                                 set_download_folder(&mut new_config.download_path);
+                                if new_config.active != opt.active {
+                                    if new_config.active {
+                                        println!("[clippy_hook] Activating clipboard monitoring");
+                                        GlobalLogger::log("[clippy_hook] Activating clipboard monitoring");
+                                    } else {
+                                        println!("[clippy_hook] Deactivating clipboard monitoring");
+                                        GlobalLogger::log("[clippy_hook] Deactivating clipboard monitoring");
+                                    }
+                                } else {
+                                    println!("[clippy_hook] Config reloaded successfully!");
+                                    GlobalLogger::log("[clippy_hook] Config reloaded successfully!");
+                                }
                                 *opt = new_config;
-                                println!("[clippy_hook] Config reloaded successfully!");
-                                GlobalLogger::log("[clippy_hook] Config reloaded successfully!");
                                 last_reload = Instant::now();
                             }
                             Err(_) => {

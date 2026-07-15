@@ -1,5 +1,7 @@
 # youtube_clipboard_hook
 
+![App screenshot](img/app.png)
+
 A small open-source tool (Rust + helpers) that watches the system clipboard for links and automatically downloads recognized media links (YouTube, direct media files, torrents, etc.).
 
 See the full documentation in the `docs/` folder.

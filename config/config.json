@@ -1,6 +1,6 @@
 {
 	"use_youtube": true,
-	"use_mpv": true,
+	"active": true,
 	"use_wget": true,
 	"use_soundcloud": true,
 	"use_transmission": true,

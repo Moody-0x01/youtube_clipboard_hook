@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Manager & Logs</title>
+    <title>CLIPPY-HOOK // Central Control</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-color: #080c14;
+            --card-bg: rgba(17, 24, 39, 0.55);
+            --text-color: #f1f5f9;
+            --text-muted: #64748b;
             --accent-color: #6366f1;
             --accent-hover: #4f46e5;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --input-bg: rgba(15, 23, 42, 0.6);
-            --terminal-bg: rgba(5, 5, 12, 0.85);
+            --state-active: #00f5a0;
+            --state-active-glow: rgba(0, 245, 160, 0.12);
+            --border-color: rgba(255, 255, 255, 0.05);
+            --input-bg: rgba(3, 7, 18, 0.6);
+            --terminal-bg: #030712;
+            /* New amber variant that contrasts intensely with deep blues/blacks */
+            --highlight-amber: #ffb800; 
         }
 
         body {
@@ -21,7 +26,7 @@
             background-color: var(--bg-color);
             background-image: 
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+                radial-gradient(at 100% 100%, rgba(0, 245, 160, 0.08) 0px, transparent 50%);
             color: var(--text-color);
             margin: 0;
             padding: 40px;
@@ -33,195 +38,192 @@
             overflow-x: hidden;
         }
 
-        /* Master Wrapper for Side-by-Side Layout */
         .dashboard-wrapper {
             display: flex;
             width: 100%;
-            max-width: 1300px;
-            gap: 30px;
+            max-width: 1350px;
+            gap: 32px;
             align-items: stretch;
             opacity: 0;
-            transform: translateY(30px);
-            animation: boardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform: translateY(20px);
+            animation: boardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes boardIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Glass Container (Left Column) */
-        .container {
+        /* Panels */
+        .container, .terminal-panel {
             flex: 1;
-            min-width: 320px;
-            background: rgba(30, 41, 59, 0.45);
-            backdrop-filter: blur(16px) saturate(120%);
-            -webkit-backdrop-filter: blur(16px) saturate(120%);
-            padding: 32px;
-            border-radius: 24px;
-            box-shadow: 
-                0 4px 30px rgba(0, 0, 0, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            min-width: 340px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .container { 
+            padding: 36px; 
             border: 1px solid var(--border-color);
         }
 
-        /* Terminal Panel (Right Column) */
+        /* Upgraded Terminal Panel Integration with Yellowish/Amber Emphasis */
         .terminal-panel {
-            flex: 1;
-            min-width: 320px;
             background: var(--terminal-bg);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            /* Swapped subtle blue border for high-contrast amber */
+            border: 1px solid rgba(255, 184, 0, 0.35);
+            /* Mixed deep shadows with a crisp amber accent glow */
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.5), 
+                0 0 30px rgba(255, 184, 0, 0.04);
+            position: relative;
         }
 
-        /* Terminal Header Bar */
-        .terminal-header {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        .terminal-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            /* Top flare updated to trace into amber hue */
+            background: linear-gradient(90deg, transparent, rgba(255, 184, 0, 0.6), transparent);
         }
 
-        .terminal-title {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .window-dots {
-            display: flex;
-            gap: 6px;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .dot.red { background: #ef4444; }
-        .dot.amber { background: #f59e0b; }
-        .dot.green { background: #10b981; }
-
-        /* Terminal Content Terminal Text Stream */
-        .terminal-body {
-            flex: 1;
-            padding: 20px;
-            margin: 0;
-            overflow-y: auto;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #34d399; /* Classic Linux terminal green */
-            background: transparent;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 550px;
-        }
-
-        .log-entry {
-            margin-bottom: 6px;
-        }
-
-        /* Original Styles preserved below */
         h2 {
-            margin-top: 0;
-            margin-bottom: 24px;
-            font-size: 1.5rem;
+            margin: 0 0 28px 0;
+            font-size: 1.3rem;
             font-weight: 700;
-            letter-spacing: -0.025em;
-            color: var(--text-color);
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            color: #fff;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         h2::before {
             content: '';
-            display: inline-block;
             width: 4px;
-            height: 24px;
+            height: 20px;
             background: var(--accent-color);
             border-radius: 4px;
         }
 
         .section-title {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             color: var(--text-muted);
-            margin: 24px 0 12px 0;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-color);
+            margin: 28px 0 14px 0;
+            font-weight: 700;
         }
 
+        /* Dynamic Main Power State Switch Card */
+        .master-state-card {
+            background: rgba(3, 7, 18, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .master-state-card.is-active {
+            border-color: rgba(0, 245, 160, 0.25);
+            background: var(--state-active-glow);
+            box-shadow: inset 0 0 20px rgba(0, 245, 160, 0.03);
+        }
+
+        .master-state-card .info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .master-state-card .status-label {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .master-state-card .status-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        /* Toggle Grid System */
         .toggle-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
         }
 
         .form-group-toggle {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.01);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             transition: all 0.2s ease;
         }
 
         .form-group-toggle:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .form-group-column {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-top: 16px;
+            gap: 10px;
+            margin-top: 18px;
         }
 
         label {
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            user-select: none;
         }
 
+        /* Modern Inputs */
         input[type="text"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             color: #fff;
             border-radius: 10px;
             box-sizing: border-box;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            font-family: inherit;
             transition: all 0.2s ease;
         }
 
         input[type="text"]:focus {
             border-color: var(--accent-color);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
+        /* Normalized Switch Sizing Core Engine */
         .switch {
             position: relative;
             display: inline-block;
-            width: 42px;
+            width: 46px;
             height: 24px;
+            flex-shrink: 0;
         }
 
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -230,7 +232,7 @@
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.08);
             transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 24px;
         }
@@ -242,48 +244,111 @@
             width: 18px;
             left: 3px;
             bottom: 3px;
-            background-color: #fff;
+            background-color: #94a3b8;
             transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 50%;
         }
 
         input:checked + .slider { background-color: var(--accent-color); }
-        input:checked + .slider:before { transform: translateX(18px); }
+        input:checked + .slider:before { 
+            transform: translateX(22px); 
+            background-color: #fff;
+        }
 
+        /* Match structure exactly but preserve active toggle custom aesthetics */
+        .switch-active input:checked + .slider { background-color: var(--state-active); }
+        .switch-active input:checked + .slider:before { background-color: #000; }
+
+        /* Actions */
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background-color: var(--accent-color);
             border: none;
             border-radius: 10px;
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
+            letter-spacing: 0.03em;
             cursor: pointer;
-            margin-top: 28px;
+            margin-top: 32px;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
         button:hover {
             background-color: var(--accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
         }
 
         .status {
             text-align: center;
-            margin-top: 16px;
-            font-size: 0.9rem;
+            margin-top: 18px;
+            font-size: 0.85rem;
             font-weight: 500;
             min-height: 20px;
         }
 
-        /* Responsive stack if screen is too narrow */
-        @media (max-width: 850px) {
-            .dashboard-wrapper {
-                flex-direction: column;
-            }
+        /* Enhanced Terminal Styling Components */
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .terminal-title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .terminal-live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px transparent; }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 transparent; }
+        }
+
+        .terminal-title {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .window-dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+
+        .terminal-body {
+            flex: 1;
+            padding: 24px;
+            margin: 0;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #34d399;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 600px;
+        }
+
+        .log-entry { margin-bottom: 6px; }
+
+        @media (max-width: 900px) {
+            .dashboard-wrapper { flex-direction: column; }
             body { padding: 20px; }
         }
     </style>
@@ -292,17 +357,26 @@
 
 <div class="dashboard-wrapper">
     <div class="container">
-        <h2>Configuration Dashboard</h2>
+        <h2>System Core</h2>
         <form id="configForm">
+            
+            <div class="section-title">Execution State</div>
+            <div class="master-state-card" id="stateCard">
+                <div class="info-block">
+                    <span class="status-label">Active State</span>
+                    <span class="status-desc" id="stateDesc">Process lifecycle master switch</span>
+                </div>
+                <label class="switch switch-active">
+                    <input type="checkbox" id="active">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
             <div class="section-title">Enabled Services</div>
             <div class="toggle-grid">
                 <div class="form-group-toggle">
                     <label for="use_youtube">Use YouTube</label>
                     <label class="switch"><input type="checkbox" id="use_youtube"><span class="slider"></span></label>
-                </div>
-                <div class="form-group-toggle">
-                    <label for="use_mpv">Use MPV</label>
-                    <label class="switch"><input type="checkbox" id="use_mpv"><span class="slider"></span></label>
                 </div>
                 <div class="form-group-toggle">
                     <label for="use_wget">Use Wget</label>
@@ -328,35 +402,85 @@
                 <input type="text" id="formats" placeholder=".mp3, .mp4">
             </div>
 
-            <button type="submit">Save Configuration</button>
+            <button type="submit">Commit System Changes</button>
             <div id="status" class="status"></div>
         </form>
     </div>
 
-    <div class="terminal-panel">
+    <div class="terminal-panel" id="terminalPanel">
         <div class="terminal-header">
-            <span class="terminal-title">Daemon Logs (clippy_hook)</span>
+            <div class="terminal-title-container">
+                <div class="terminal-live-dot" id="liveDot"></div>
+                <span class="terminal-title">Daemon Stream :: clippy_hook</span>
+            </div>
             <div class="window-dots">
-                <div class="dot red"></div>
-                <div class="dot amber"></div>
-                <div class="dot green"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
             </div>
         </div>
-        <div class="terminal-body" id="terminalLog">Welcome to clippy_hook panel. Connecting to stream...
-</div>
+        <div class="terminal-body" id="terminalLog">Initializing dashboard control panel interface...</div>
     </div>
 </div>
 
 <script>
     const statusDiv = document.getElementById('status');
     const terminalLog = document.getElementById('terminalLog');
-    const visibleToggles = ['use_youtube', 'use_mpv', 'use_wget', 'use_soundcloud', 'use_transmission'];
+    const masterActiveToggle = document.getElementById('active');
+    const stateCard = document.getElementById('stateCard');
+    const stateDesc = document.getElementById('stateDesc');
+    const liveDot = document.getElementById('liveDot');
+    const visibleToggles = ['use_youtube', 'use_wget', 'use_soundcloud', 'use_transmission'];
 
-    // Load initial config from backend
+    function getPayloadState() {
+        return {
+            quiet: false,
+            download_path_set: true,
+            active: masterActiveToggle.checked,
+            download_path: document.getElementById('download_path').value,
+            formats: document.getElementById('formats').value.split(',').map(s => s.trim()).filter(Boolean),
+            ...visibleToggles.reduce((acc, id) => {
+                acc[id] = document.getElementById(id).checked;
+                return acc;
+            }, {})
+        };
+    }
+
+    function updateVisualCardState(isActive) {
+        if (isActive) {
+            stateCard.classList.add('is-active');
+            stateDesc.innerText = "Daemon active and capturing events.";
+            stateDesc.style.color = "var(--state-active)";
+            liveDot.style.backgroundColor = "var(--state-active)";
+            liveDot.style.boxShadow = "0 0 8px var(--state-active)";
+        } else {
+            stateCard.classList.remove('is-active');
+            stateDesc.innerText = "Daemon offline. Execution halted.";
+            stateDesc.style.color = "var(--text-muted)";
+            liveDot.style.backgroundColor = "var(--accent-color)";
+            liveDot.style.boxShadow = "0 0 8px var(--accent-color)";
+        }
+    }
+
+    async function sendConfigUpdate(payload) {
+        const res = await fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Update failed');
+        return res;
+    }
+
     async function loadConfig() {
         try {
             const res = await fetch('/api/config');
             const data = await res.json();
+            
+            if(data.active !== undefined) {
+                masterActiveToggle.checked = data.active;
+                updateVisualCardState(data.active);
+            }
             
             visibleToggles.forEach(id => {
                 if(data[id] !== undefined) document.getElementById(id).checked = data[id];
@@ -370,73 +494,64 @@
         }
     }
 
-    // Connect to the Server-Sent Events /stream endpoint
     function connectToLogStream() {
-        // SSE connection
         const eventSource = new EventSource('/stream');
 
         eventSource.onopen = () => {
-            terminalLog.innerHTML += `<div class="log-entry" style="color: #60a5fa;">[UI] Connected to daemon log stream! Waiting for events...</div>`;
+            terminalLog.innerHTML += `<div class="log-entry" style="color: #6366f1;">[UI] Connected to system logging stream. Monitoring...</div>`;
         };
 
         eventSource.onmessage = (event) => {
-            // Append incoming stream line
             const newLog = document.createElement('div');
             newLog.className = 'log-entry';
             newLog.textContent = event.data.trim();
             terminalLog.appendChild(newLog);
-
-            // Auto-scroll to the bottom of the terminal window
             terminalLog.scrollTop = terminalLog.scrollHeight;
         };
 
         eventSource.onerror = (err) => {
-            console.error("EventSource failed:", err);
+            console.error("EventSource exception:", err);
             const errorLog = document.createElement('div');
             errorLog.className = 'log-entry';
             errorLog.style.color = '#f87171';
-            errorLog.textContent = '[UI] Stream disconnected. Reconnecting...';
+            errorLog.textContent = '[UI] Connection drop. Attempting to restream...';
             terminalLog.appendChild(errorLog);
         };
     }
 
-    // Save config back to backend
-    document.getElementById('configForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        statusDiv.innerText = 'Saving changes...';
-        statusDiv.style.color = '#94a3b8';
-
-        const payload = {
-            quiet: false,
-            download_path_set: true,
-            download_path: document.getElementById('download_path').value,
-            formats: document.getElementById('formats').value.split(',').map(s => s.trim()).filter(Boolean)
-        };
-        
-        visibleToggles.forEach(id => {
-            payload[id] = document.getElementById(id).checked;
-        });
+    masterActiveToggle.addEventListener('change', async () => {
+        const checkState = masterActiveToggle.checked;
+        updateVisualCardState(checkState);
+        statusDiv.innerText = checkState ? 'Spawning background daemon...' : 'Terminating background daemon...';
+        statusDiv.style.color = '#64748b';
 
         try {
-            const res = await fetch('/api/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                statusDiv.innerText = 'Configuration saved successfully!';
-                statusDiv.style.color = '#34d399';
-            } else {
-                throw new Error();
-            }
+            await sendConfigUpdate(getPayloadState());
+            statusDiv.innerText = checkState ? 'Daemon status: ACTIVE' : 'Daemon status: OFFLINE';
+            statusDiv.style.color = checkState ? '#00f5a0' : '#64748b';
         } catch (err) {
-            statusDiv.innerText = 'Error saving configuration.';
+            statusDiv.innerText = 'Failed to push system override.';
+            statusDiv.style.color = '#f87171';
+            masterActiveToggle.checked = !checkState;
+            updateVisualCardState(!checkState);
+        }
+    });
+
+    document.getElementById('configForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusDiv.innerText = 'Syncing configuration array...';
+        statusDiv.style.color = '#64748b';
+
+        try {
+            await sendConfigUpdate(getPayloadState());
+            statusDiv.innerText = 'Configuration written successfully.';
+            statusDiv.style.color = '#00f5a0';
+        } catch (err) {
+            statusDiv.innerText = 'Error writing configuration payload.';
             statusDiv.style.color = '#f87171';
         }
     });
 
-    // Run setup on load
     loadConfig();
     connectToLogStream();
 </script>

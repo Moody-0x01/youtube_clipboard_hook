@@ -15,7 +15,7 @@ if not path.exists(DEFAULT_PATH): makedirs(DEFAULT_PATH, exist_ok=True)
 
 class ConfigSchema(BaseModel):
     use_youtube: bool
-    use_mpv: bool
+    active: bool
     use_wget: bool
     use_soundcloud: bool
     use_transmission: bool

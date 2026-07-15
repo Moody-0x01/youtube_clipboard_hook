@@ -5,7 +5,7 @@ use crate::consts::DEFUALT_FMTS;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Options {
     pub use_youtube: bool,
-    pub use_mpv: bool,
+    pub active: bool,
     pub use_wget: bool,
     pub use_soundcloud: bool,
     pub use_transmission: bool,
@@ -25,8 +25,7 @@ fn help(program_name: &String) {
     println!("    -y  | --use_youtube: Use `yt-dlp` to download youtube videos");
     println!("    -w  | --use_wget: Use `wget` to download content");
     println!("    -t  | --use_transmission: Use `transmission` to download torrent");
-    println!("    -m  | --use_mpv: Use `mpv` to play the content"); // depreicated, cuz it is
-                                                                    // useless
+    println!("    -a  | --active: Activate the download process");
     println!("    -s  | --use_soundcloud: Use `soundcloud` to download the music");
     println!("    -q  | --quiet: be quiet lol");
 }
@@ -44,7 +43,7 @@ impl Options
     {
         Self {
             use_youtube: false,
-            use_mpv: false,
+            active: true,
             use_wget: false,
             use_soundcloud: false,
             use_transmission: false,
@@ -79,8 +78,8 @@ impl Options
                 "-w" | "--use_wget" => {
                     self.use_wget = true;
                 },
-                "-m" | "--use_mpv" => {
-                    self.use_mpv = true;
+                "-a" | "--active" => {
+                    self.active = true;
                 },
                 "-s" | "--use_soundcloud" => {
                     self.use_soundcloud = true;
@@ -123,7 +122,7 @@ impl Options
             i += 1;
         }
         self.setupdefault_formats();
-        if !self.use_youtube && !self.use_wget && !self.use_mpv && !self.use_transmission
+        if !self.use_youtube && !self.use_wget && !self.active && !self.use_transmission
         {
             self.use_wget = true;
             self.use_transmission = true;
@@ -145,7 +144,7 @@ impl Options
     {
         println!("use_wget: {}", self.use_wget);
         println!("use_youtube: {}", self.use_youtube);
-        println!("use_mpv: {}", self.use_mpv);
+        println!("active: {}", self.active);
         println!("download_path: {}", self.download_path);
         println!("quiet: {}", self.quiet);
         println!("formats:");

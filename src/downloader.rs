@@ -115,6 +115,9 @@ pub fn download(new: &String, links: &mut Vec<String>, opts: &Options)
     //     // Figure out what folder to use based on the extension
     //     todo!();
     // }
+    if !opts.active {
+        return;
+    }
     if links.contains(new) || !is_link(new)
     {
         return ;

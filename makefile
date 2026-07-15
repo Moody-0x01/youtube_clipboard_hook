@@ -8,7 +8,7 @@ CONFIG=./config/config.json
 APP_DIR=$(HOME)/.local/share/clippy/
 SYS_CTL=systemctl --user 
 INSTALL_DIRECTORY=$(HOME)/.local/bin
-APP_FILES=app/requirements.txt $(wildcard app/*.py)
+APP_FILES=app/requirements.txt $(wildcard app/*.py) $(wildcard app/views/*)
 
 all: $(TARGET) app
 
