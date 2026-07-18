@@ -70,7 +70,8 @@ fn download_using_backend(backend: &str, new: &String, opts: &Options)
 
 fn is_link(link: &String) -> bool
 {
-    return link.starts_with("https://");
+    return link.starts_with("https://")
+        || link.starts_with("magnet:?xt");
 }
 
 fn is_youtube(link: &String) -> bool {

@@ -1,4 +1,4 @@
-# youtube_clipboard_hook
+# Clippy yey
 
 ![App screenshot](img/app.png)
 
