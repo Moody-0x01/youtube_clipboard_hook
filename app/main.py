@@ -2,6 +2,7 @@ import asyncio
 import json
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from os import environ, makedirs, path, remove
 
@@ -10,6 +11,8 @@ CONFIG_FILE="/home/moody/.config/clippy_hook/config.json"
 DEFAULT_PATH = environ["HOME"] + "/" + "clippy_hook"
 SOCKET_PATH = "/tmp/clippy_hook.sock"
 daemon_queue = asyncio.Queue()
+
+app.mount("/views", StaticFiles(directory=path.join(path.dirname(__file__), "views")), name="views")
 
 if not path.exists(DEFAULT_PATH): makedirs(DEFAULT_PATH, exist_ok=True)
 
